@@ -1,44 +1,45 @@
 from yt_dlp import YoutubeDL
-# https://music.youtube.com/watch?v=00v5Y_n9JN8&si=U1Ey5H8gaTGeNQNi
-calidadL = ['Baja', 'Alta']
-audio = ["worstaudio", "bestaudio"]
-#video = ["worst", "best"]
+from ffmpeg import *
+calidadL = ["Baja", "Alta"]
+audioC = ["worstaudio", "bestaudio"]
+videoC = ["worst", "best"]
 
-def download(url, ruta, video, formato, calidad):
-    if formato != "":
-        for i in range(2):
+def to_quality(calidad):
+    for i in range(2):
             print(i)
             if calidadL[i] == calidad:   
                 print(calidad + " Es igual a " + calidadL[i])
-                calidad = audio[i]
                 print("calidad actual: " + calidad)
-                break
-    else:
+                return int(i)
+                
+def download(url, ruta, video, formato, calidad):
+    cal_vid = videoC[1] # la calidad del video siempre sera la maxima
+    if formato != "": # Para audio no predeterminado
+        calidad = audioC[to_quality(calidad)]
+    else: # Para video
         if(video == 1):
             formato = "mp4"
-            calidad = "bestaudio"
-        else:
-            formato = "mp3"
+            conf_global = int(to_quality(calidad))
+            calidad = audioC[conf_global]
+            cal_vid = videoC[conf_global]
+        else: # Predeterminado
+            formato = "m4a"
     ydl_opts = {
-    'format': formato+'/'+calidad+'/best',
-    #'format': 'm4a/bestaudio/best', # Se declara el formato y se especifica la calidad del audio
+    'format': formato+'/'+calidad+'/'+cal_vid,
     'outtmpl': ruta+'/Track: %(playlist_index)s - %(title)s.%(ext)s', #%(uploader)s - %(album)s - 
-    'quiet': False, # Desactiva el output a consola
+    'quiet': True, # Desactiva el output a consola
     'writethumbnail': True, # Se baja la portada
     'postprocessors': [  # Extract audio using ffmpeg
-        {'key': 'FFmpegExtractAudio',
-         'preferredcodec': formato},
-        
+        {'key': 'FFmpegExtractAudio', # Separacion de audio del video para posprocesado 
+         'preferredcodec': formato}, # Codec de audio/video a usar
         {'key': 'FFmpegMetadata'}, # Se incorpora la metadata de la cancion. Se hace primero ya que la portada se pierde al reescribir la metadata, mas no al revez
         {'key': 'EmbedThumbnail'}, # Se incorpora la portada al archivo
     ]
-    #'dump_single_json': True debugin de toda la metadata
-    #'noplaylist': False para controlar si se trabaja con playlists
     }
     print("> Descargando")
     print(ydl_opts)
     print("-----------------------------")
     YoutubeDL(ydl_opts).download(url) # Usando el metodo YoutubeDL y dandole las configuraciones previas como parametros, se emplea su comportameniento de descargar (Download) dandole el url del video / playlist
-    print("> Finalizado -- wwwww --")
-    print("> Finalizado --  ///  --")
-    print("> Finalizado   wwwwwww  ")
+    #print("> Finalizado -- wwwww --")
+    #print("> Finalizado --  ///  --")
+    #print("> Finalizado   wwwwwww  ")

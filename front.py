@@ -15,6 +15,7 @@ def res(): # existe para ser llamado por el submit y diversos tratos
         pre_formato = formato.get()
 
     download(urlTP.get(), rutaT.cget("text"), video.get(),pre_formato, calidad.get())
+    pre_formato=""
     #se hace video.get() a una variable a pesar de no ser el objeto ya que IntVar() es la forma en la que "es en lo q esta progamado Tkinter", asi q accedes al comportamiento del objeto al designarle un destino explisito
 
 def path_finder():
@@ -24,19 +25,19 @@ def path_finder():
     ) # config es como para reescribir los parametros, q loco
 
 main = Tk()
-main.title('Youtube666')
+main.title('AGYD')
 Label(main, text = "URL").grid(row=0)
 Label(main, text = "Video").grid(row=1)
 Label(main, text = "DEF: Audio").grid(row=1, column=2)
 Label(main, text = "Formato").grid(row=2)
-Label(main, text = "DEF: mp3 (Audio) / mp4 (Video)").grid(row=2, column=2)
+Label(main, text = "DEF: m4a (Audio) / mp4 (Video)").grid(row=2, column=2)
 Label(main, text = "Ruta").grid(row=3)
 rutaT = Label(main, text = "/././.")
 rutaT.grid(row=3,column=2) # se coloca aparte pq si no es como si no tuviera ubicacion, entonces su ubicacion relativa queda como "None", por lo q no hay sujeto
 Label(main, text = "Calidad").grid(row=4)
 Label(main, text = "DEF: Alta").grid(row=4, column=2)
 
-formato = ttk.Combobox(main, values = ['mp3', 'm4a', 'flac'], state = 'readonly') # Podria ser el codec
+formato = ttk.Combobox(main, values = ['m4a'], state = 'readonly') # Podria ser el codec
 formato.grid(row=2, column = 1)
 calidad = ttk.Combobox(main, values = ['Alta','Baja'], state = 'readonly')
 calidad.grid(row=4, column = 1)
