@@ -8,7 +8,8 @@ Implementing a GUI and some enchanments for use the yt_dlp package.
 
 ## GUI [By the date this is wroten]
 ### The default download rute is where AGYD is.
-<img width="535" height="140" alt="AGYD_GUI" src="https://github.com/user-attachments/assets/589e091f-a61c-46a6-abb7-5005bd246354" />
+<img width="1062" height="226" alt="image" src="https://github.com/user-attachments/assets/2bd1d029-551c-4ada-b81c-f7b86535a826" />
+
 
 
 
