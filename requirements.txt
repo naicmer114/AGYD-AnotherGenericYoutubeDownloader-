@@ -1,0 +1,4 @@
+auto-py-to-exe==2.48.1
+customtkinter==5.2.2
+win10toast==0.9
+yt-dlp==2026.2.4
