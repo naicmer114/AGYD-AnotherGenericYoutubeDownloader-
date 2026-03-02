@@ -1,14 +1,16 @@
 # Importaciones externas
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import ttk, filedialog
 from threading import Thread
 import os
+import sys
 
 # Importaciones internas
 from down import download
 
 
-class window(ttk.Frame):
+class window(ctk.CTkFrame):
     def __init__(self, parent, *args, **kwargs):
         # --- Inicializacion de datos ---
         """
@@ -17,7 +19,7 @@ class window(ttk.Frame):
         Orden en download(): url, ruta, video, formato, calidad
         -----------------------
         """
-        self.download_config = {
+        self.download_configure = {
             # La ruta tomara por defecto el donde se este ejecutando AGYD
             "ruta": os.getcwd(),
             "is_video": 0,
@@ -28,128 +30,183 @@ class window(ttk.Frame):
         }
 
         """
-            --- Tratado de tkinter --- 
+            --- PRE TKINTER WIDGETS --- 
         """
-        ttk.Frame.__init__(self, parent, *args, **kwargs)
+        ctk.CTkFrame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
         # Se establece el titulo de la ventana
         parent.title("AGYD")
+        parent.geometry("480x640")
+        parent.resizable(False, False)   
 
-        parent.resizable(False, False)
+        # Thanks to theme use to: a13xe (https://github.com/a13xe)
+        ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+        self.apariencia_de_sistema = ctk.get_appearance_mode()
+        ctk.set_default_color_theme(self.resource_path("violet.json"))
+
         # Se establece el icono de la ventana
-        # parent.iconbitmap("AGYD_logo.ico")
+        parent.iconbitmap(self.resource_path("AGYD_logo.ico"))
 
-        """
-            --- Static Style Section ---
-        """
-        # Se abrevia el ttk.Style() en una variable
-        style = ttk.Style()
-        # Estilo en general configurado
-        style.theme_use("clam")  # Try: 'alt', 'default', 'classic', 'clam'
+        # CANVAS COLOR SECTION
+        self.color_list = ["#F0F0F0", "#0F0F0F"]
+        self.mode = 0 if ctk.get_appearance_mode() == "Light" else 1
+        self.color_bg_to_canvas_label = self.color_list[self.mode]
 
-        # Color/Fondo del frame y ventana
-        bg_color_GENERAL = "#fcff7d"
-        self.parent.config(bg=bg_color_GENERAL)
-        style.configure(
-            "TFrame",
-            background=bg_color_GENERAL,
+        self.canva1 = ctk.CTkCanvas(
+            self,
+            bg=self.color_bg_to_canvas_label,
+            width=460,
+            height=177,
+            highlightthickness=0,
+            borderwidth=0,
         )
-        # Color/Fondo de los botones de la ventana
-        bg_button_color_GENERAL = "#807dff"
-        bg_button_color_FOCUSED = "#adacff"
-        style.configure(
-            "TButton",
-            relief="ridge",
-            background=bg_button_color_GENERAL,
-            foreground="black",
-            focusthickness=3,
-            focuscolor="none",
-            font=("Segoe UI", 10, "bold"),
-        )
-        style.configure(
-            "TLabel",
-            background=bg_color_GENERAL,
-            font=("Segoe UI", 10, "bold"),
-        )
+        self.canva1.place(x=9, y=20)
 
-        """
-            --- Interactive Style Section --- 
-        """
-        style.map(
-            "TButton",
-            background=[("active", bg_button_color_FOCUSED)],
-            relief=[("active", "solid")],
+        self.canva2 = ctk.CTkCanvas(
+            self,
+            bg=self.color_bg_to_canvas_label,
+            width=460,
+            height=165,
+            highlightthickness=0,
+            borderwidth=0,
         )
-        style.map("TEntry", lightcolor=[("focus", "blue")])
+        self.canva2.place(x=9, y=219)
+
+        self.canva3 = ctk.CTkCanvas(
+            self,
+            bg=self.color_bg_to_canvas_label,
+            width=460,
+            height=228,
+            highlightthickness=0,
+            borderwidth=0,
+        )
+        self.canva3.place(x=9, y=403)
 
         # Seccion URL
-        ttk.Label(self, text="URL").grid(row=0, column=0)
-        self.urlTP = ttk.Entry(self, width=50)
-        self.urlTP.grid(row=0, column=1)
+        ctk.CTkLabel(self, text="URL").place(x=24, y=31)
+        self.urlTP = ctk.CTkEntry(self, width=429, height=43)
+        self.urlTP.place(x=26, y=62)
 
         # Seccion RUTA
-        ttk.Label(self, text="Ruta de descarga / Download path").grid(row=1, column=0)
-        self.rutaT = ttk.Label(
-            self, text=os.getcwd()
+        ctk.CTkLabel(
+            self,
+            text="Ruta de descarga / Download path",
+            anchor="center",
+            width=460,
+            height=24,
+        ).place(x=9, y=123)
+        self.pathB = ctk.CTkButton(
+            self,
+            text="Buscar / Browse",
+            command=self.path_finder,
+            width=157,
+            height=31,
+        )
+        self.pathB.place(x=26, y=159)
+
+        self.rutaT = ctk.CTkLabel(
+            self,
+            text=os.getcwd(),
+            width=275,
+            height=44,
         )  # Por defecto, mostrara la ruta del AGYD
-        self.rutaT.grid(row=1, column=1)
-        self.pathB = ttk.Button(self, text="Buscar / Browse", command=self.path_finder)
-        self.pathB.grid(row=1, column=2)
+        self.rutaT.place(x=189, y=153)
 
         # -- Botones defaults
 
         # Label de los presets
-        ttk.Label(self, text="Presets para descarga / Download Preset").grid(
-            row=2, column=0
-        )
+        ctk.CTkLabel(
+            self,
+            text="Presets para descarga / Download Preset",
+            anchor="center",
+            width=460,
+            height=24,
+        ).place(x=9, y=229)
 
         # Seccion Audio Default Preset
-        self.audio_default_button = ttk.Button(
-            self, text="Audio Default Preset", command=self.audio_default
+        self.audio_default_button = ctk.CTkButton(
+            self,
+            text="Audio Default Preset",
+            command=self.audio_default,
+            width=201,
+            height=54,
         )
-        self.audio_default_button.grid(row=2, column=1)
+        self.audio_default_button.place(x=26, y=263)
 
         # Seccion Video Default Preset
-        self.video_default_button = ttk.Button(
-            self, text="Video Default Preset", command=self.video_default
+        self.video_default_button = ctk.CTkButton(
+            self,
+            text="Video Default Preset",
+            command=self.video_default,
+            width=201,
+            height=54,
         )
-        self.video_default_button.grid(row=2, column=2)
+        self.video_default_button.place(x=256, y=263)
 
         # Seccion Feedback User what_is_downloading
-        self.preset_selected = ttk.Label(self, text="Preset selected / Preset elegido")
-        self.preset_selected.grid(row=3, column=0)
+        self.preset_selected = ctk.CTkLabel(
+            self,
+            text="Preset selected / Preset elegido",
+            justify="center",
+            width=327,
+            height=38,
+        )
+        self.preset_selected.place(x=9, y=336)
 
         # Seccion Feedback User what_is_downloading
-        self.what_is_downloading = ttk.Label(self, text="Audio")
-        self.what_is_downloading.grid(row=3, column=1)
+        self.what_is_downloading = ctk.CTkLabel(self, text="Audio")
+        self.what_is_downloading.place(x=336, y=343)
 
         # Seccion SUBMIT
-        self.submit = ttk.Button(
-            self, text="Descargar / Download", command=self.down
-        )  # sin parentesis pq si no se considera un llamado injectado
-        self.submit.grid(row=4, column=1)
-
-        # Temp Reminder
-        self.reminder = ttk.Label(
+        self.submit = ctk.CTkButton(
             self,
-            text="--------------------------------------------------------->\n"
-            + "(ENG: While downloading, wait for this boy to be static :3)\n"
-            + "(ESP:Durante descargas, espera a que la barra este estatica :3)",
-        )
-        self.reminder.grid(row=5, column=0)
+            text="Descargar / Download",
+            command=self.down,
+            width=168,
+            height=43,
+        )  # sin parentesis pq si no se considera un llamado injectado
+        self.submit.place(x=161, y=423)
 
         # Seccion BARRA DE PROGRESO
-        self.progress = ttk.Progressbar(self, length=200, mode="indeterminate")
-        self.progress.grid(row=5, column=1)
+        self.progress = ttk.Progressbar(
+            self,
+            length=300,
+        )
+        self.progress.place(x=94, y=485)
 
         # LABELS FOR DOWNLOAD FEEDBACK
-        self.speed = ttk.Label(
+        self.speed = ctk.CTkLabel(
             self,
-            text="ENG: Download speed, percentage and estimated time\n"
-            + "ESP: Velocidad de descarga, porcentaje y tiempo estimado",
+            text="ESP: Velocidad de descarga, porcentaje y tiempo estimado\n"
+            + "ENG: Download speed, percentage and estimated time",
+            justify="center",
+            width=425,
+            height=52,
         )
-        self.speed.grid(row=5, column=2)
+        self.speed.place(x=32, y=510)
+
+        # Temporal Reminder
+        self.reminder = ctk.CTkLabel(
+            self,
+            text="(ESP: Recibiras una notificacion cuando la descarga termine.\n Dura mas para listas de reproduccion)\n"
+            + "(ENG: You will recive an notification when it ends.\n It takes longer for playlists)",
+            justify="center",
+            width=425,
+            height=52,
+        )
+        self.reminder.place(x=32, y=563)
+
+        """
+            Top Menu
+        """
+        # Se crea la variable asociada al
+        self.menu_bar = tk.Menu(parent)
+        # Se añade la opcion asociada al switch del menu oscuro y diurno
+        self.menu_bar.add_command(
+            label="Dark Mode / Light Mode", command=self.change_theme
+        )
+        parent.config(menu=self.menu_bar)  # Se añade como menu a la ventana en si
 
         """
             Context Menu
@@ -158,10 +215,12 @@ class window(ttk.Frame):
             Answer Associated: https://stackoverflow.com/a/66514657
         """
         # Se declara el menu contextual con ayuda de Tkinter
-        self.menu = tk.Menu(self, tearoff=0)
+        self.context_menu = tk.Menu(self, tearoff=0)
         # Se añaden las opciones de dicho menu contextual
-        self.menu.add_command(label="Paste / Pegar", command=self.contextM_paste)
-        self.menu.add_command(label="Copy / Copiar", command=self.contextM_copy)
+        self.context_menu.add_command(
+            label="Paste / Pegar", command=self.contextM_paste
+        )
+        self.context_menu.add_command(label="Copy / Copiar", command=self.contextM_copy)
         # Se asocia los comportamientos ocurridos con el menu contextual
         # A la bandeja de texto
         self.urlTP.bind("<Button-3>", self.popup)
@@ -186,26 +245,20 @@ class window(ttk.Frame):
             target=download,
             args=(
                 self.urlTP.get(),
-                self.download_config[
+                self.download_configure[
                     "ruta"
                 ],  # SI NO se coloca ruta se usa la del programa
-                self.download_config["is_video"],
-                self.download_config["formato"],
-                self.download_config["calidad_general"],
+                self.download_configure["is_video"],
+                self.download_configure["formato"],
+                self.download_configure["calidad_general"],
                 self.speed,
+                self.progress,
             ),
         )
-
-        # Seteo del hilo de la barra de progreso
-        global thread_progress
-        thread_progress = Thread(
-            target=self.check_progress,
-        )  # Se declara el hilo a usar para la descarga, previniendo de que el GUI se congele
 
         # Arranque de hilos
         # No se declaran en self pq son hinerentes de la funcion "down" en la que estan
         trhead_download.start()
-        thread_progress.start()
 
     # -- Path desired function
     def path_finder(self):
@@ -215,45 +268,26 @@ class window(ttk.Frame):
         ruta_elejida = filedialog.askdirectory(title="Elija la ruta de descarga")
         # Si se elije una ruta
         if ruta_elejida != "":
-            self.rutaT.config(text=ruta_elejida)
-            self.download_config.update(ruta=ruta_elejida)
+            self.rutaT.configure(text=ruta_elejida)
+            self.download_configure.update(ruta=ruta_elejida)
         else:  # Si NO se elije una ruta
             # Reescribimos la ruta, tomando la locacion de ejecucion del AGYD
             ruta_elejida = os.getcwd()
-            self.rutaT.config(text=ruta_elejida)
-            self.download_config.update(ruta=ruta_elejida)
+            self.rutaT.configure(text=ruta_elejida)
+            self.download_configure.update(ruta=ruta_elejida)
 
     # -- DEFAULTS PRESET FUNCTIONS
     # Default Audio Preset
     def audio_default(self):
-        self.download_config.update(formato="mp3")
-        self.download_config.update(is_video=0)
-        self.what_is_downloading.config(text="Audio")
+        self.download_configure.update(formato="mp3")
+        self.download_configure.update(is_video=0)
+        self.what_is_downloading.configure(text="Audio")
 
     # Default Video Preset
     def video_default(self):
-        self.download_config.update(formato="mp4")
-        self.download_config.update(is_video=1)
-        self.what_is_downloading.config(text="Video")
-
-    # -- PROGRESS BAR BEHAVIOR
-    # Fuction used on thread declaration on down() fuction from Submmit Button
-    def check_progress(self):
-        self.start_progress()
-        trhead_download.join()
-        self.stop_progress()
-
-    # Start "Animation" for progress bar
-    def start_progress(self):
-        self.progress.start()
-        self.progress.state = "disabled"
-        self.progress.state = "normal"
-
-    # Stop "Animation" for progress bar
-    def stop_progress(self):
-        self.progress.stop()
-        self.progress.state = "normal"
-        self.progress.state = "disabled"
+        self.download_configure.update(formato="mp4")
+        self.download_configure.update(is_video=1)
+        self.what_is_downloading.configure(text="Video")
 
     """
         Context Menu Behavior
@@ -261,11 +295,12 @@ class window(ttk.Frame):
 
     def popup(self, event):
         try:
-            self.menu.tk_popup(
-                event.x_root, event.y_root
-            )  # Pop the menu up in the given coordinates
+            # Intentamos inicializar el menu contextual en la posicion
+            # relativa de donde se realizo el click drecho
+            self.context_menu.tk_popup(event.x_root, event.y_root)
         finally:
-            self.menu.grab_release()
+            # Si se pudo realizar lo anterior, entonces se muestran las opciones
+            self.context_menu.grab_release()
 
     def contextM_paste(self):
         # Se toma lo que este en el porta papeles
@@ -283,11 +318,45 @@ class window(ttk.Frame):
         # Se copia al porta papeles el texto que habia en la bandeja
         root.clipboard_append(text_being_in_entry)
 
+    # All theme related changes
+    def change_theme(self):
+        # If the theme dark mode
+        if self.apariencia_de_sistema == "Dark":
+            # Change general theme
+            ctk.set_appearance_mode("Light")
+            # Redifine the current theme
+            self.apariencia_de_sistema = ctk.get_appearance_mode()
+
+            # Change color for canvas to light colors
+            self.color_bg_to_canvas_label = self.color_list[0]
+            # Individual changing of the canvas color
+            self.canva1.config(bg=self.color_bg_to_canvas_label)
+            self.canva2.config(bg=self.color_bg_to_canvas_label)
+            self.canva3.config(bg=self.color_bg_to_canvas_label)
+        # If the theme light mode
+        else:
+            # Change general theme
+            ctk.set_appearance_mode("Dark")
+            # Redifine the current theme
+            self.apariencia_de_sistema = ctk.get_appearance_mode()
+
+            # Change color for canvas to dark colors
+            self.color_bg_to_canvas_label = self.color_list[1]
+            # Individual changing of the canvas color
+            self.canva1.config(bg=self.color_bg_to_canvas_label)
+            self.canva2.config(bg=self.color_bg_to_canvas_label)
+            self.canva3.config(bg=self.color_bg_to_canvas_label)
+    # Search resources function
+    def resource_path(self, name):
+        if hasattr(sys, "_MEIPASS"):
+            return os.path.join(sys._MEIPASS, name)
+        return os.path.join(os.path.abspath("."), name)
+
 
 # Se define la forma de proceder inicial al llamar al front
 if __name__ == "__main__":
     # Se declara al root como empleador de los modulos de tkinter
-    root = tk.Tk()
+    root = ctk.CTk()
 
     # Se llama a la clase para crear el objeto de ventana,
     # y se empaquetan los parametros de heredara la ventana

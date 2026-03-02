@@ -9,7 +9,7 @@ import re
 
 
 class download:
-    def __init__(self, url, ruta, is_video, formato, calidad_general, label):
+    def __init__(self, url, ruta, is_video, formato, calidad_general, label, progress):
 
         # Se declaran las rutas de ffmpeg y ffprobe
         self.ffmpeg_dir = os.path.dirname(self.resource_path("ffmpeg.exe"))
@@ -38,10 +38,10 @@ class download:
             self.ydl_opts = {
                 "format": self.Quality_global,
                 "progress_hooks": [
-                    self.progress_hook_factory(self.gui_callback, label)
+                    self.progress_hook_factory(self.gui_callback, label, progress)
                 ],
                 "outtmpl": ruta + "/Track: %(playlist_index)s - %(title)s.%(ext)s",
-                "quiet": False,  # Desactiva el output a consola
+                "quiet": True,  # Desactiva el output a consola
                 "ffmpeg_location": self.ffmpeg_dir,
                 "postprocessors": [  # Extract audio using ffmpeg
                     {
@@ -69,11 +69,11 @@ class download:
             self.Quality_vid = self.Quality_list_for_video[calidad_general]
             self.ydl_opts = {
                 "progress_hooks": [
-                    self.progress_hook_factory(self.gui_callback, label)
+                    self.progress_hook_factory(self.gui_callback, label, progress)
                 ],
                 "format": formato + "/" + self.Quality_audio + "/" + self.Quality_vid,
                 "outtmpl": ruta + "/%(title)s.%(ext)s",
-                "quiet": False,  # Desactiva el output a consola
+                "quiet": True,  # Desactiva el output a consola
                 "ffmpeg_location": os.path.realpath("./libs/ffmpeg/bin/ffmpeg.exe"),
             }
 
@@ -99,7 +99,7 @@ class download:
         return os.path.join(os.path.abspath("."), name)
 
     # Procesos asociados a la redireccion de la informacion de ytdlp
-    def progress_hook_factory(self, gui_callback, label):
+    def progress_hook_factory(self, gui_callback, label, progress):
         # Procesamos la redireccion de la informacion sobre el progreso de ytdlp
         def hook(d):
             # Si esta descargando procesamos y presentamos la info en el gui
@@ -108,13 +108,15 @@ class download:
                 percent = d.get("_percent_str", "").strip()
                 speed = d.get("_speed_str", "").strip()
                 eta = d.get("_eta_str", "").strip()
+
                 # Se reconstruye el texto a presentar bajo el formato deseado
                 texto = f"{percent} {speed}\nTiempo faltante: {eta}"
 
                 # Limpiamos los códigos ANSI (caracteres invalidos) antes de mostrar
                 texto_limpio = self.limpiar_ansi(texto)
+
                 # Pasamos la informacion a la funcion que modificara el gui
-                self.gui_callback(texto_limpio, label)
+                self.gui_callback(texto_limpio, label, progress, percent)
 
         return hook
 
@@ -125,6 +127,20 @@ class download:
         return ansi_escape.sub("", texto)  # Se devuelven los datos sin comillas
 
     # Se actualizan los datos de la gui e nbase a los datos disponibles
-    def gui_callback(self, texto, label):
+    def gui_callback(self, texto, label, progress, percent):
+
         # Se modifica el Label del gui que muestra la velocidad de descarga
-        label.config(text=texto)
+        label.configure(text=texto)
+
+        # Bar Progress Section
+        # Se limpia el hook del porcentaje
+        per = self.limpiar_ansi(percent)
+
+        # Se retira el simbolo del porcentaje
+        per = per.replace("%", "")
+
+        # Se pasa a flotante (porque aveces viene como 0.0 o 0.1) y luego a entero
+        per = int(float(per))
+
+        # Se actualiza la barra de progreso
+        progress.config(value=per)
