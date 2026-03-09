@@ -1,0 +1,50 @@
+{
+    "ruta_descarga": {
+        "es": "Ruta de descarga",
+        "en": "Download path"
+    },
+    "button_path": {
+        "es": "Buscar",
+        "en": "Browse"
+    },
+    "label_preset": {
+        "es": "Presets para descarga",
+        "en": "Download Preset"
+    },
+    "button_preset_audio": {
+        "es": "Configuracion para Audio",
+        "en": "Audio Default Preset"
+    },
+    "button_preset_video": {
+        "es": "Configuracion para Video",
+        "en": "Video Default Preset"
+    },
+    "label_preset_elegido": {
+        "es": "Preset elegido",
+        "en": "Preset selected"
+    },
+    "button_download": {
+        "es": "Descargar",
+        "en": "Download"
+    },
+    "label_speed_pre_download": {
+        "es": "Velocidad de descarga, \nporcentaje y \ntiempo estimado",
+        "en": "Download speed, \npercentage and \nestimated time"
+    },
+    "menubar_dark_light": {
+        "es": "Modo nocturno / Modo diurno",
+        "en": "Dark Mode / Light Mode"
+    },
+    "context_menu_option_paste": {
+        "es": "Pegar",
+        "en": "Paste"
+    },
+    "context_menu_option_copy": {
+        "es": "Copiar",
+        "en": "Copy"
+    },
+    "filename": {
+        "es": "Nombre del archivo",
+        "en": "Filename"
+    }
+}
